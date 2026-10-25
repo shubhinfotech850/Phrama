@@ -14,12 +14,14 @@ import {
 } from 'lucide-react';
 import type { Promotion, Agency, Product } from '../types/pharmacy';
 import { createPromotion } from '../services/api';
+import { useI18n } from '../services/i18n';
 
 interface NewReleasePromotionsProps {
   promotions: Promotion[];
   agencies: Agency[];
   onPromotionCreated: () => void;
   onOpenSampleInquiry: (productName: string, agencyName: string, mrPhone: string) => void;
+  canPublish?: boolean;
 }
 
 export const NewReleasePromotions: React.FC<NewReleasePromotionsProps> = ({
@@ -27,7 +29,9 @@ export const NewReleasePromotions: React.FC<NewReleasePromotionsProps> = ({
   agencies,
   onPromotionCreated,
   onOpenSampleInquiry,
+  canPublish = false,
 }) => {
+  const { t } = useI18n();
   const [showLaunchModal, setShowLaunchModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successBanner, setSuccessBanner] = useState<string | null>(null);
@@ -111,25 +115,57 @@ export const NewReleasePromotions: React.FC<NewReleasePromotionsProps> = ({
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold text-indigo-700 mb-1">
             <Sparkles className="w-4 h-4" />
-            <span>New Releases & MR Campaigns</span>
+            <span>{t('promos.title')}</span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
-            Promote New Tablet Releases & Discover Latest Formulations
+            {t('promos.title')}
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            MRs and wholesale agencies can publish new medicine launches, doctor sample offers, and retailer introduction schemes visible to all medical stores.
+            {t('promos.subtitle')}
           </p>
         </div>
 
         <button
           type="button"
           onClick={() => setShowLaunchModal(true)}
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 text-xs font-bold text-white bg-indigo-700 hover:bg-indigo-800 rounded-md shadow-xs transition-colors whitespace-nowrap w-full sm:w-auto shrink-0 min-h-[40px]"
+          className="hidden"
+          aria-hidden="true"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Launch New Tablet Promotion</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setShowLaunchModal(true)}
+          className="hidden"
+          aria-hidden="true"
         >
           <Plus className="w-4 h-4" />
           <span>Launch New Tablet Promotion</span>
         </button>
       </div>
+
+      {canPublish && (
+        <div className="flex justify-end -mt-2 mb-2">
+          <button
+            type="button"
+            onClick={() => setShowLaunchModal(true)}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-bold text-white bg-indigo-700 hover:bg-indigo-800 rounded-md shadow-xs transition-colors whitespace-nowrap min-h-[40px]"
+          >
+            <Plus className="w-4 h-4" />
+            <span>{t('promos.launch')}</span>
+          </button>
+        </div>
+      )}
+
+      {!canPublish && (
+        <div className="flex items-center gap-2 px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-600">
+          <Sparkles className="w-4 h-4 text-indigo-600 shrink-0" />
+          <span>
+            Browse the latest tablet launches below. To publish your own campaign, switch to the <strong>MR / Agency</strong> workspace.
+          </span>
+        </div>
+      )}
 
       {/* Success Banner */}
       {successBanner && (

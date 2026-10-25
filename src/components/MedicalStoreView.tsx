@@ -17,6 +17,7 @@ import {
   Info
 } from 'lucide-react';
 import type { Product, Agency } from '../types/pharmacy';
+import { useI18n } from '../services/i18n';
 
 interface MedicalStoreViewProps {
   products: Product[];
@@ -31,6 +32,7 @@ export const MedicalStoreView: React.FC<MedicalStoreViewProps> = ({
   onOpenInquiry,
   onSelectNewReleasesTab,
 }) => {
+  const { t } = useI18n();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedCity, setSelectedCity] = useState('All');
@@ -44,16 +46,13 @@ export const MedicalStoreView: React.FC<MedicalStoreViewProps> = ({
     'Antacid / PPI',
     'Cardiovascular',
     'Antiallergic & Respiratory',
-    'New Release / Specialty'
   ];
 
-  // Distinct cities from products
   const cities = useMemo(() => {
     const list = Array.from(new Set(products.map(p => p.agencyCity).filter(Boolean)));
     return ['All', ...list];
   }, [products]);
 
-  // Filter products
   const filteredProducts = useMemo(() => {
     return products.filter(p => {
       if (onlyInStock && p.stockQty <= 0) return false;
@@ -94,23 +93,17 @@ export const MedicalStoreView: React.FC<MedicalStoreViewProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Search Header Banner */}
-      <div className="bg-white rounded-lg border border-slate-200 p-5 sm:p-6 shadow-2xs">
-        <div className="max-w-3xl">
-          <div className="flex items-center gap-2 text-xs font-semibold text-teal-700 mb-1">
-            <Building2 className="w-4 h-4" />
-            <span>Retail Chemist & Pharmacy Stock Discovery</span>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-            Search Tablets, Check Agency Stock & Connect Directly with MRs
-          </h1>
-          <p className="text-sm text-slate-500 mt-1">
-            Find which pharmaceutical agencies and medical representatives have your requested tablets in stock, compare PTR rates & schemes, and place orders directly.
-          </p>
-        </div>
+      {/* Search Header */}
+      <div className="bg-white rounded-xl border border-slate-200 p-5 sm:p-6 shadow-sm">
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+          {t('search.title')}
+        </h1>
+        <p className="text-sm text-slate-500 mt-1">
+          {t('search.subtitle')}
+        </p>
 
-        {/* Search Bar Input */}
-        <div className="mt-5 relative">
+        {/* Search Bar */}
+        <div className="mt-4 relative">
           <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
             <Search className="w-5 h-5" />
           </div>
@@ -118,26 +111,25 @@ export const MedicalStoreView: React.FC<MedicalStoreViewProps> = ({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search tablet brand (e.g. Augmentin, Dolo, Pan, Telma) or generic salt (Paracetamol, Amoxicillin)..."
-            className="w-full pl-11 pr-24 py-3 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-teal-600 transition-all font-medium"
+            placeholder={t('search.placeholder')}
+            className="w-full pl-11 pr-24 py-3 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-teal-600 focus:ring-2 focus:ring-teal-100 transition-all font-medium"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
               className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-xs text-slate-400 hover:text-slate-600 font-medium"
             >
-              Clear
+              {t('search.clear')}
             </button>
           )}
         </div>
 
-        {/* Filter Bar (Responsive for mobile horizontal touch scrolling) */}
+        {/* Filter Bar */}
         <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-          {/* Category Filter Buttons */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-2 sm:pb-0 max-w-full scrollbar-none">
             <span className="text-slate-400 font-semibold mr-1 shrink-0 flex items-center gap-1 text-[11px] uppercase tracking-wider">
               <Filter className="w-3.5 h-3.5" />
-              Category:
+              {t('search.category')}
             </span>
             {categories.map((cat) => (
               <button
@@ -146,7 +138,7 @@ export const MedicalStoreView: React.FC<MedicalStoreViewProps> = ({
                 onClick={() => setSelectedCategory(cat)}
                 className={`px-3 py-1.5 rounded-md font-medium whitespace-nowrap transition-colors shrink-0 min-h-[36px] sm:min-h-0 flex items-center ${
                   selectedCategory === cat
-                    ? 'bg-slate-900 text-white shadow-2xs font-bold'
+                    ? 'bg-slate-900 text-white font-bold'
                     : 'text-slate-600 bg-slate-100 hover:bg-slate-200'
                 }`}
               >
@@ -155,10 +147,9 @@ export const MedicalStoreView: React.FC<MedicalStoreViewProps> = ({
             ))}
           </div>
 
-          {/* City & Stock Filter */}
           <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
             <div className="flex items-center gap-1.5">
-              <label className="text-slate-500 font-medium">Territory:</label>
+              <label className="text-slate-500 font-medium">{t('search.city')}:</label>
               <select
                 value={selectedCity}
                 onChange={(e) => setSelectedCity(e.target.value)}
@@ -177,32 +168,30 @@ export const MedicalStoreView: React.FC<MedicalStoreViewProps> = ({
                 onChange={(e) => setOnlyInStock(e.target.checked)}
                 className="w-4 h-4 rounded text-teal-600 focus:ring-teal-500"
               />
-              <span>In Stock Only</span>
+              <span>{t('search.inStock')}</span>
             </label>
           </div>
         </div>
       </div>
 
-      {/* Promoted New Release Banner Kicker */}
-      <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      {/* New Releases kicker */}
+      <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-start gap-3">
           <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white shrink-0 mt-0.5">
             <Sparkles className="w-4 h-4" />
           </div>
           <div>
-            <h4 className="text-sm font-bold text-indigo-950">
-              New Releases & Doctor Sample Campaigns
-            </h4>
+            <h4 className="text-sm font-bold text-indigo-950">{t('search.newReleasesTitle')}</h4>
             <p className="text-xs text-indigo-800 mt-0.5">
-              Pharma MRs and agencies have launched 3 newly approved molecules with introductory retailer schemes and free physician trial kits.
+              {t('search.newReleasesBody')}
             </p>
           </div>
         </div>
         <button
           onClick={onSelectNewReleasesTab}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-indigo-700 hover:bg-indigo-800 rounded-md whitespace-nowrap shrink-0 transition-colors shadow-2xs"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-indigo-700 hover:bg-indigo-800 rounded-md whitespace-nowrap shrink-0 transition-colors"
         >
-          <span>View New Releases</span>
+          <span>{t('search.viewNewReleases')}</span>
           <ChevronRight className="w-3.5 h-3.5" />
         </button>
       </div>
@@ -210,7 +199,7 @@ export const MedicalStoreView: React.FC<MedicalStoreViewProps> = ({
       {/* Results Count & Density Indicator */}
       <div className="flex items-center justify-between text-xs text-slate-500 px-1">
         <span>
-          Showing <strong className="text-slate-800">{filteredProducts.length}</strong> available medicine stock listings
+          {t('search.results', { count: filteredProducts.length })}
         </span>
         <span className="hidden sm:inline">
           Prices shown in Indian Rupee (₹) · PTR (Price to Retailer) · MRP
@@ -385,10 +374,10 @@ export const MedicalStoreView: React.FC<MedicalStoreViewProps> = ({
         <div className="bg-white rounded-lg border border-slate-200 p-12 text-center space-y-3">
           <Package className="w-10 h-10 text-slate-300 mx-auto" />
           <h3 className="text-base font-bold text-slate-800">
-            No Medicines Match &quot;{searchQuery || selectedCategory}&quot;
+            {t('search.noResults', { query: searchQuery || selectedCategory })}
           </h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            Try searching by the generic salt name (e.g. Paracetamol, Amoxicillin, Pantoprazole) or clear category filters.
+            {t('search.noResultsBody')}
           </p>
           <button
             onClick={() => {
@@ -399,7 +388,7 @@ export const MedicalStoreView: React.FC<MedicalStoreViewProps> = ({
             }}
             className="px-3.5 py-1.5 text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 rounded-md transition-colors"
           >
-            Reset All Filters
+            {t('search.resetFilters')}
           </button>
         </div>
       )}

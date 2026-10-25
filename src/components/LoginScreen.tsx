@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Pill, Lock, User, ArrowRight, ShieldCheck, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { useI18n } from '../services/i18n';
+import { LanguageSwitcher } from './LanguageSwitcher';
 
 interface LoginScreenProps {
   onLogin: () => void;
@@ -9,6 +11,7 @@ const TEST_USER_ID = '123456789';
 const TEST_PIN = '1234';
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
+  const { t } = useI18n();
   const [userId, setUserId] = useState('');
   const [pin, setPin] = useState('');
   const [showPin, setShowPin] = useState(false);
@@ -20,7 +23,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
     setError(null);
 
     if (!userId.trim() || !pin.trim()) {
-      setError('Please enter both your User ID and PIN.');
+      setError(t('login.errorBoth'));
       return;
     }
 
@@ -40,7 +43,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
       }
       onLogin();
     } else {
-      setError('Invalid User ID or PIN. Please try again.');
+      setError(t('login.errorInvalid'));
       setIsSubmitting(false);
     }
   };
@@ -59,6 +62,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
         <div className="absolute -bottom-24 -left-24 w-96 h-96 rounded-full bg-indigo-100/30 blur-3xl" />
       </div>
 
+      <div className="absolute top-4 right-4 z-10">
+        <LanguageSwitcher />
+      </div>
+
       <div className="relative w-full max-w-md">
         {/* Brand Header */}
         <div className="flex flex-col items-center text-center mb-7">
@@ -66,19 +73,19 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
             <Pill className="w-7 h-7" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-            PharmaBridge
+            {t('app.name')}
           </h1>
           <p className="text-xs text-slate-500 mt-1 max-w-xs">
-            Sign in to the MR & Agency Stock Network — your pharmaceutical discovery portal.
+            {t('login.subtitle')}
           </p>
         </div>
 
         {/* Login Card */}
         <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-7 shadow-xl shadow-slate-900/5">
           <div className="pb-4 mb-4 border-b border-slate-100">
-            <h2 className="text-base font-bold text-slate-900">Secure Sign In</h2>
+            <h2 className="text-base font-bold text-slate-900">{t('login.title')}</h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Enter your registered User ID and 4-digit PIN.
+              {t('login.subtitle2')}
             </p>
           </div>
 
@@ -92,7 +99,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                User ID
+                {t('login.userId')}
               </label>
               <div className="relative">
                 <User className="w-4 h-4 absolute left-3 top-3.5 text-slate-400" />
@@ -101,7 +108,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                   inputMode="numeric"
                   value={userId}
                   onChange={(e) => setUserId(e.target.value)}
-                  placeholder="Enter your User ID"
+                  placeholder={t('login.userIdPlaceholder')}
                   className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-sm font-medium text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-teal-600 focus:border-teal-500 transition-all"
                   autoComplete="username"
                 />
@@ -110,7 +117,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                4-Digit PIN
+                {t('login.pin')}
               </label>
               <div className="relative">
                 <Lock className="w-4 h-4 absolute left-3 top-3.5 text-slate-400" />
@@ -141,10 +148,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
               className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-white bg-teal-600 hover:bg-teal-700 disabled:opacity-60 disabled:cursor-not-allowed rounded-lg shadow-xs transition-all min-h-[48px]"
             >
               {isSubmitting ? (
-                <span>Signing in...</span>
+                <span>{t('login.signingIn')}</span>
               ) : (
                 <>
-                  <span>Sign In</span>
+                  <span>{t('login.signIn')}</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -157,7 +164,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
               <ShieldCheck className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
               <div className="flex-1">
                 <p className="text-[11px] font-semibold text-slate-700">
-                  Test Credentials
+                  {t('login.testCreds')}
                 </p>
                 <p className="text-[11px] text-slate-500 mt-0.5 font-mono">
                   User ID: <strong className="text-slate-800">123456789</strong> · PIN: <strong className="text-slate-800">1234</strong>
@@ -167,7 +174,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                   onClick={handleQuickFill}
                   className="mt-1.5 text-[11px] font-semibold text-teal-700 hover:text-teal-900 transition-colors"
                 >
-                  Auto-fill test credentials →
+                  {t('login.autoFill')}
                 </button>
               </div>
             </div>
@@ -175,7 +182,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
         </div>
 
         <p className="text-center text-[11px] text-slate-400 mt-5">
-          FDA & Drug Control Compliant · Verified Wholesale Network
+          {t('login.compliance')}
         </p>
       </div>
     </div>

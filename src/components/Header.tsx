@@ -1,25 +1,50 @@
-import React, { useState } from 'react';
-import { 
-  Pill, 
-  ScanLine, 
-  Sparkles, 
-  Building2, 
-  PackageCheck, 
-  Store, 
-  Menu, 
+import React, { useState, useEffect } from 'react';
+import {
+  Pill,
+  ScanLine,
+  Sparkles,
+  Building2,
+  PackageCheck,
+  Store,
+  Menu,
   X,
-  ChevronRight,
-  ShieldCheck
+  ShieldCheck,
+  Stethoscope,
+  Briefcase,
+  Sun,
+  Moon,
+  LayoutDashboard,
+  LogOut,
 } from 'lucide-react';
 import type { UserRole } from '../types/pharmacy';
+import { useTheme } from '../services/theme';
+import { useI18n } from '../services/i18n';
+import { LanguageSwitcher } from './LanguageSwitcher';
+
+type TabKey = 'medical_search' | 'bill_scanner' | 'new_releases' | 'agency_portal' | 'agency_dashboard' | 'directory';
 
 interface HeaderProps {
-  activeTab: 'medical_search' | 'bill_scanner' | 'new_releases' | 'agency_portal' | 'directory';
-  setActiveTab: (tab: 'medical_search' | 'bill_scanner' | 'new_releases' | 'agency_portal' | 'directory') => void;
+  activeTab: TabKey;
+  setActiveTab: (tab: TabKey) => void;
   userRole: UserRole;
   setUserRole: (role: UserRole) => void;
   pendingInquiriesCount?: number;
+  onLogout?: () => void;
 }
+
+const NAV_BY_ROLE: Record<UserRole, { key: TabKey; labelKey: string; icon: React.ComponentType<{ className?: string }> }[]> = {
+  medical_store: [
+    { key: 'medical_search', labelKey: 'nav.search', icon: Store },
+    { key: 'new_releases', labelKey: 'nav.newReleases', icon: Sparkles },
+    { key: 'directory', labelKey: 'nav.stockists', icon: Building2 },
+  ],
+  mr_agency: [
+    { key: 'agency_dashboard', labelKey: 'nav.dashboard', icon: LayoutDashboard },
+    { key: 'agency_portal', labelKey: 'nav.stock', icon: PackageCheck },
+    { key: 'bill_scanner', labelKey: 'nav.scanBill', icon: ScanLine },
+    { key: 'new_releases', labelKey: 'nav.newReleases', icon: Sparkles },
+  ],
+};
 
 export const Header: React.FC<HeaderProps> = ({
   activeTab,
@@ -27,353 +52,271 @@ export const Header: React.FC<HeaderProps> = ({
   userRole,
   setUserRole,
   pendingInquiriesCount = 0,
+  onLogout,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
+  const { t } = useI18n();
 
-  const handleNavClick = (tab: 'medical_search' | 'bill_scanner' | 'new_releases' | 'agency_portal' | 'directory') => {
+  const items = NAV_BY_ROLE[userRole];
+
+  const handleNavClick = (tab: TabKey) => {
     setActiveTab(tab);
     setMobileMenuOpen(false);
   };
 
+  useEffect(() => {
+    document.body.style.overflow = mobileMenuOpen ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileMenuOpen]);
+
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-slate-200">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between gap-2 sm:gap-4 md:gap-8 h-14 sm:h-16">
-          
-          {/* Zone 1: Brand Wordmark */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            <button
-              onClick={() => handleNavClick('medical_search')}
-              className="flex items-center gap-2 text-left focus:outline-none group"
-            >
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-teal-600 flex items-center justify-center text-white shadow-xs group-hover:bg-teal-700 transition-colors">
-                <Pill className="w-4 h-4 sm:w-5 sm:h-5" />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-base sm:text-lg font-bold tracking-tight text-slate-900 whitespace-nowrap leading-none">
-                  PharmaBridge
-                </span>
-                <span className="hidden sm:block text-[11px] font-medium text-slate-500 whitespace-nowrap mt-0.5">
-                  MR & Agency Stock Network
-                </span>
-              </div>
-            </button>
-          </div>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between gap-3 h-14 sm:h-16">
+          {/* Brand */}
+          <button
+            onClick={() => handleNavClick(userRole === 'medical_store' ? 'medical_search' : 'agency_dashboard')}
+            className="flex items-center gap-2 shrink-0 focus:outline-none group"
+          >
+            <div className="w-9 h-9 rounded-xl bg-teal-600 flex items-center justify-center text-white shadow-sm group-hover:bg-teal-700 transition-colors">
+              <Pill className="w-5 h-5" />
+            </div>
+            <span className="text-lg font-bold tracking-tight text-slate-900 whitespace-nowrap">
+              {t('app.name')}
+            </span>
+          </button>
 
-          {/* Zone 2: Desktop 4-5 Concise Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-1 sm:gap-1.5">
-            <button
-              onClick={() => handleNavClick('medical_search')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-md whitespace-nowrap transition-colors flex items-center gap-1.5 ${
-                activeTab === 'medical_search'
-                  ? 'bg-slate-900 text-white'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-              }`}
-            >
-              <Store className="w-3.5 h-3.5" />
-              <span>Search Medicines</span>
-            </button>
-
-            <button
-              onClick={() => handleNavClick('bill_scanner')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-md whitespace-nowrap transition-colors flex items-center gap-1.5 ${
-                activeTab === 'bill_scanner'
-                  ? 'bg-teal-700 text-white'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-              }`}
-            >
-              <ScanLine className="w-3.5 h-3.5" />
-              <span>Scan Bill & Upload</span>
-            </button>
-
-            <button
-              onClick={() => handleNavClick('new_releases')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-md whitespace-nowrap transition-colors flex items-center gap-1.5 ${
-                activeTab === 'new_releases'
-                  ? 'bg-indigo-700 text-white'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-              }`}
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>New Release Tabs</span>
-            </button>
-
-            <button
-              onClick={() => handleNavClick('agency_portal')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-md whitespace-nowrap transition-colors flex items-center gap-1.5 ${
-                activeTab === 'agency_portal'
-                  ? 'bg-slate-900 text-white'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-              }`}
-            >
-              <PackageCheck className="w-3.5 h-3.5" />
-              <span>MR & Agency Stock</span>
-              {pendingInquiriesCount > 0 && (
-                <span className="w-4 h-4 text-[10px] font-bold bg-amber-500 text-slate-900 rounded-full flex items-center justify-center">
-                  {pendingInquiriesCount}
-                </span>
-              )}
-            </button>
-
-            <button
-              onClick={() => handleNavClick('directory')}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-md whitespace-nowrap transition-colors flex items-center gap-1.5 ${
-                activeTab === 'directory'
-                  ? 'bg-slate-900 text-white'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-              }`}
-            >
-              <Building2 className="w-3.5 h-3.5" />
-              <span>Stockist Directory</span>
-            </button>
+          {/* Desktop Nav — only tabs relevant to current role */}
+          <nav className="hidden md:flex items-center gap-1">
+            {items.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.key;
+              return (
+                <button
+                  key={item.key}
+                  onClick={() => handleNavClick(item.key)}
+                  className={`px-3 py-2 text-sm font-semibold rounded-lg whitespace-nowrap transition-colors flex items-center gap-1.5 relative ${
+                    isActive
+                      ? 'bg-slate-900 text-white'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{t(item.labelKey)}</span>
+                  {item.key === 'agency_portal' && pendingInquiriesCount > 0 && (
+                    <span className="w-4 h-4 text-[10px] font-bold bg-amber-500 text-slate-900 rounded-full flex items-center justify-center">
+                      {pendingInquiriesCount}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </nav>
 
-          {/* Zone 3: Role Switcher & Mobile Menu Toggle */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            {/* Responsive Workspace Switcher */}
-            <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+          {/* Right: role switch, theme, logout, mobile toggle */}
+          <div className="flex items-center gap-2 shrink-0">
+            {/* Role switcher */}
+            <div className="flex items-center bg-slate-100 p-0.5 rounded-lg">
               <button
                 type="button"
                 onClick={() => setUserRole('medical_store')}
-                className={`px-2 sm:px-2.5 py-1 text-[11px] sm:text-xs font-semibold rounded-md whitespace-nowrap transition-all ${
+                className={`px-2.5 py-1 text-xs font-semibold rounded-md whitespace-nowrap transition-all flex items-center gap-1 ${
                   userRole === 'medical_store'
-                    ? 'bg-white text-slate-900 shadow-xs font-bold'
+                    ? 'bg-white text-slate-900 shadow-sm font-bold'
                     : 'text-slate-500 hover:text-slate-800'
                 }`}
-                title="Switch to Retail Medical Store"
               >
-                <span className="hidden sm:inline">Medical Store</span>
-                <span className="sm:hidden">Chemist</span>
+                <Stethoscope className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">{t('role.store')}</span>
               </button>
-
               <button
                 type="button"
                 onClick={() => setUserRole('mr_agency')}
-                className={`px-2 sm:px-2.5 py-1 text-[11px] sm:text-xs font-semibold rounded-md whitespace-nowrap transition-all ${
+                className={`px-2.5 py-1 text-xs font-semibold rounded-md whitespace-nowrap transition-all flex items-center gap-1 ${
                   userRole === 'mr_agency'
-                    ? 'bg-white text-slate-900 shadow-xs font-bold'
+                    ? 'bg-white text-slate-900 shadow-sm font-bold'
                     : 'text-slate-500 hover:text-slate-800'
                 }`}
-                title="Switch to MR & Agency Hub"
               >
-                <span className="hidden sm:inline">MR / Agency</span>
-                <span className="sm:hidden">MR/Agency</span>
+                <Briefcase className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">{t('role.mrAgency')}</span>
               </button>
             </div>
 
-            {/* Quick Action Button on desktop */}
-            {userRole === 'mr_agency' ? (
+            <LanguageSwitcher />
+
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="hidden sm:inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+              aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+            >
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+
+            {onLogout && (
               <button
-                onClick={() => handleNavClick('bill_scanner')}
-                className="hidden xl:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-md transition-colors whitespace-nowrap shadow-xs"
+                type="button"
+                onClick={onLogout}
+                className="hidden sm:inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-600 hover:text-rose-700 hover:bg-rose-50 transition-colors"
+                aria-label="Sign out"
               >
-                <ScanLine className="w-3.5 h-3.5" />
-                <span>Scan Bill</span>
-              </button>
-            ) : (
-              <button
-                onClick={() => handleNavClick('medical_search')}
-                className="hidden xl:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-md transition-colors whitespace-nowrap shadow-xs"
-              >
-                <Store className="w-3.5 h-3.5" />
-                <span>Order Stock</span>
+                <LogOut className="w-4 h-4" />
               </button>
             )}
 
-            {/* Mobile Hamburger Toggle Button (shown on < 1024px) */}
             <button
               type="button"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors focus:outline-none min-h-[40px] min-w-[40px] flex items-center justify-center"
-              aria-label="Toggle mobile menu"
+              onClick={() => setMobileMenuOpen(true)}
+              className="md:hidden p-2 rounded-lg text-slate-700 hover:bg-slate-100 transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center border border-slate-200"
+              aria-label="Open navigation menu"
             >
-              {mobileMenuOpen ? (
-                <X className="w-5 h-5 text-slate-900" />
-              ) : (
-                <Menu className="w-5 h-5" />
-              )}
+              <Menu className="w-5 h-5" />
             </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Animated Dropdown Drawer (Top Header Menu) */}
-      {mobileMenuOpen && (
-        <div className="lg:hidden bg-white border-b border-slate-200 px-4 pt-3 pb-4 shadow-xl space-y-2 animate-in slide-in-from-top-2 duration-150">
-          <div className="pb-2 border-b border-slate-100 flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-              Navigation Menu
-            </span>
-            <span className="text-[11px] font-semibold text-teal-700 bg-teal-50 px-2 py-0.5 rounded">
-              {userRole === 'medical_store' ? 'Medical Store View' : 'MR & Agency View'}
-            </span>
+      {/* Mobile drawer */}
+      <div
+        className={`md:hidden fixed inset-0 z-[60] transition-opacity duration-300 ${
+          mobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+        aria-hidden={!mobileMenuOpen}
+      >
+        <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" onClick={() => setMobileMenuOpen(false)} />
+        <aside
+          className={`absolute top-0 left-0 h-full w-[82%] max-w-xs bg-white shadow-2xl flex flex-col transition-transform duration-300 ${
+            mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
+          <div className="px-5 pt-5 pb-4 border-b border-slate-200 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-teal-600 flex items-center justify-center text-white">
+                <Pill className="w-5 h-5" />
+              </div>
+              <span className="text-base font-bold tracking-tight text-slate-900">{t('app.name')}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(false)}
+              className="p-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 min-h-[40px] min-w-[40px] flex items-center justify-center"
+              aria-label="Close navigation menu"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
-          <nav className="space-y-1">
-            <button
-              onClick={() => handleNavClick('medical_search')}
-              className={`w-full flex items-center justify-between p-2.5 rounded-lg text-xs font-semibold transition-colors ${
-                activeTab === 'medical_search'
-                  ? 'bg-slate-900 text-white'
-                  : 'text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <Store className="w-4 h-4" />
-                <span>Search Medicines & Salt Directory</span>
-              </div>
-              <ChevronRight className="w-4 h-4 opacity-70" />
-            </button>
+          <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1.5">
+            {items.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.key;
+              return (
+                <button
+                  key={item.key}
+                  onClick={() => handleNavClick(item.key)}
+                  className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all ${
+                    isActive ? 'bg-slate-900 text-white shadow-md' : 'text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  <span
+                    className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                      isActive ? 'bg-white/15 text-white' : 'bg-slate-100 text-slate-600'
+                    }`}
+                  >
+                    <Icon className="w-[18px] h-[18px]" />
+                  </span>
+                  <span className="text-sm font-semibold text-left flex-1">{t(item.labelKey)}</span>
+                  {item.key === 'agency_portal' && pendingInquiriesCount > 0 && (
+                    <span className="w-5 h-5 text-[10px] font-bold bg-amber-500 text-slate-900 rounded-full flex items-center justify-center">
+                      {pendingInquiriesCount}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
 
-            <button
-              onClick={() => handleNavClick('bill_scanner')}
-              className={`w-full flex items-center justify-between p-2.5 rounded-lg text-xs font-semibold transition-colors ${
-                activeTab === 'bill_scanner'
-                  ? 'bg-teal-700 text-white'
-                  : 'text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <ScanLine className="w-4 h-4" />
-                <span>Scan Distributor Bill (Gemini OCR)</span>
-              </div>
-              <ChevronRight className="w-4 h-4 opacity-70" />
-            </button>
+          <div className="px-5 py-4 border-t border-slate-200 space-y-3">
+            <div className="flex items-center bg-slate-100 p-1 rounded-xl">
+              <button
+                type="button"
+                onClick={() => setUserRole('medical_store')}
+                className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2 text-xs font-semibold rounded-lg ${
+                  userRole === 'medical_store' ? 'bg-white text-slate-900 shadow-sm font-bold' : 'text-slate-500'
+                }`}
+              >
+                <Stethoscope className="w-3.5 h-3.5" />
+                {t('role.store')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setUserRole('mr_agency')}
+                className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2 text-xs font-semibold rounded-lg ${
+                  userRole === 'mr_agency' ? 'bg-white text-slate-900 shadow-sm font-bold' : 'text-slate-500'
+                }`}
+              >
+                <Briefcase className="w-3.5 h-3.5" />
+                {t('role.mrAgency')}
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="flex-1 inline-flex items-center justify-center gap-1.5 px-2.5 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg border border-slate-200"
+              >
+                {theme === 'dark' ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+                {theme === 'dark' ? t('theme.light') : t('theme.dark')}
+              </button>
+              <LanguageSwitcher variant="full" className="flex-1" />
+              {onLogout && (
+                <button
+                  type="button"
+                  onClick={onLogout}
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 px-2.5 py-2 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-lg border border-rose-200"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  {t('action.signOut')}
+                </button>
+              )}
+            </div>
+            <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-500 font-medium pt-1">
+              <ShieldCheck className="w-3.5 h-3.5 text-teal-600" />
+              Verified Pharma Network
+            </div>
+          </div>
+        </aside>
+      </div>
 
-            <button
-              onClick={() => handleNavClick('new_releases')}
-              className={`w-full flex items-center justify-between p-2.5 rounded-lg text-xs font-semibold transition-colors ${
-                activeTab === 'new_releases'
-                  ? 'bg-indigo-700 text-white'
-                  : 'text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <Sparkles className="w-4 h-4" />
-                <span>New Release Tabs & MR Campaigns</span>
-              </div>
-              <ChevronRight className="w-4 h-4 opacity-70" />
-            </button>
-
-            <button
-              onClick={() => handleNavClick('agency_portal')}
-              className={`w-full flex items-center justify-between p-2.5 rounded-lg text-xs font-semibold transition-colors ${
-                activeTab === 'agency_portal'
-                  ? 'bg-slate-900 text-white'
-                  : 'text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <PackageCheck className="w-4 h-4" />
-                <span>MR & Agency Stock Management</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                {pendingInquiriesCount > 0 && (
-                  <span className="w-5 h-5 text-[10px] font-bold bg-amber-500 text-slate-900 rounded-full flex items-center justify-center">
+      {/* Mobile bottom bar — role-aware */}
+      <div className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-2 py-1">
+        <div className="grid gap-0.5" style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}>
+          {items.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.key;
+            return (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => handleNavClick(item.key)}
+                className={`flex flex-col items-center justify-center py-1.5 px-0.5 rounded-lg transition-colors min-h-[48px] relative ${
+                  isActive ? 'text-teal-700 font-bold bg-teal-50/80' : 'text-slate-500'
+                }`}
+              >
+                <Icon className="w-5 h-5 mb-0.5" />
+                <span className="text-[9px] leading-tight truncate">{t(item.labelKey).split(' ')[0]}</span>
+                {item.key === 'agency_portal' && pendingInquiriesCount > 0 && (
+                  <span className="absolute top-0.5 right-1 w-3.5 h-3.5 text-[8px] font-bold bg-amber-500 text-slate-900 rounded-full flex items-center justify-center">
                     {pendingInquiriesCount}
                   </span>
                 )}
-                <ChevronRight className="w-4 h-4 opacity-70" />
-              </div>
-            </button>
-
-            <button
-              onClick={() => handleNavClick('directory')}
-              className={`w-full flex items-center justify-between p-2.5 rounded-lg text-xs font-semibold transition-colors ${
-                activeTab === 'directory'
-                  ? 'bg-slate-900 text-white'
-                  : 'text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <Building2 className="w-4 h-4" />
-                <span>Verified Stockist & MR Directory</span>
-              </div>
-              <ChevronRight className="w-4 h-4 opacity-70" />
-            </button>
-          </nav>
-
-          <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-            <span className="flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5 text-teal-600" />
-              Drug License & GSTIN Verified Network
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* Mobile Bottom Navigation Bar (Persistent quick touch bar on mobile) */}
-      <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-lg px-2 py-1 safe-area-bottom">
-        <div className="grid grid-cols-5 gap-1">
-          <button
-            type="button"
-            onClick={() => handleNavClick('medical_search')}
-            className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-lg transition-colors min-h-[48px] ${
-              activeTab === 'medical_search'
-                ? 'text-teal-700 font-bold bg-teal-50/80'
-                : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <Store className="w-5 h-5 mb-0.5" />
-            <span className="text-[10px] leading-tight truncate">Search</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleNavClick('bill_scanner')}
-            className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-lg transition-colors min-h-[48px] ${
-              activeTab === 'bill_scanner'
-                ? 'text-teal-700 font-bold bg-teal-50/80'
-                : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <ScanLine className="w-5 h-5 mb-0.5" />
-            <span className="text-[10px] leading-tight truncate">Scan</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleNavClick('new_releases')}
-            className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-lg transition-colors min-h-[48px] ${
-              activeTab === 'new_releases'
-                ? 'text-indigo-700 font-bold bg-indigo-50/80'
-                : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <Sparkles className="w-5 h-5 mb-0.5" />
-            <span className="text-[10px] leading-tight truncate">New Tabs</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleNavClick('agency_portal')}
-            className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-lg transition-colors min-h-[48px] relative ${
-              activeTab === 'agency_portal'
-                ? 'text-slate-900 font-bold bg-slate-100'
-                : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <PackageCheck className="w-5 h-5 mb-0.5" />
-            <span className="text-[10px] leading-tight truncate">Stock</span>
-            {pendingInquiriesCount > 0 && (
-              <span className="absolute top-1 right-2.5 w-4 h-4 text-[9px] font-bold bg-amber-500 text-slate-900 rounded-full flex items-center justify-center">
-                {pendingInquiriesCount}
-              </span>
-            )}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleNavClick('directory')}
-            className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-lg transition-colors min-h-[48px] ${
-              activeTab === 'directory'
-                ? 'text-slate-900 font-bold bg-slate-100'
-                : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            <Building2 className="w-5 h-5 mb-0.5" />
-            <span className="text-[10px] leading-tight truncate">Directory</span>
-          </button>
+              </button>
+            );
+          })}
         </div>
       </div>
     </header>
