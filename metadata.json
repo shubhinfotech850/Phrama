@@ -1,0 +1,6 @@
+{
+  "name": "PharmaBridge - MR & Agency Stock Hub",
+  "description": "B2B Pharmaceutical discovery network connecting Medical Representatives, wholesale agencies, and retail pharmacies with AI bill scanning, tablet availability search, and new release promotions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
