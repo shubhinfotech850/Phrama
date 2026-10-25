@@ -6,11 +6,26 @@ import { NewReleasePromotions } from './components/NewReleasePromotions';
 import { AgencyInventoryManager } from './components/AgencyInventoryManager';
 import { AgencyDirectory } from './components/AgencyDirectory';
 import { InquiryModal } from './components/InquiryModal';
+import { LoginScreen } from './components/LoginScreen';
 import type { Product, Promotion, Agency, OrderInquiry, UserRole } from './types/pharmacy';
 import { fetchProducts, fetchPromotions, fetchAgencies, fetchInquiries, fetchStats } from './services/api';
-import { Pill, Sparkles, ScanLine, Store, Building2, Package, RefreshCw } from 'lucide-react';
+import { Pill, Sparkles, ScanLine, Store, Building2, Package, RefreshCw, LogOut } from 'lucide-react';
+
+const AUTH_STORAGE_KEY = 'pharmabridge_auth';
+
+function loadStoredSession(): boolean {
+  try {
+    const raw = localStorage.getItem(AUTH_STORAGE_KEY);
+    if (!raw) return false;
+    const parsed = JSON.parse(raw);
+    return Boolean(parsed && parsed.userId && parsed.loggedInAt);
+  } catch {
+    return false;
+  }
+}
 
 export default function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => loadStoredSession());
   const [activeTab, setActiveTab] = useState<'medical_search' | 'bill_scanner' | 'new_releases' | 'agency_portal' | 'directory'>('medical_search');
   const [userRole, setUserRole] = useState<UserRole>('medical_store');
   
@@ -105,6 +120,21 @@ export default function App() {
 
   const pendingInquiriesCount = inquiries.filter(i => i.status === 'Pending').length;
 
+  const handleLogout = () => {
+    try {
+      localStorage.removeItem(AUTH_STORAGE_KEY);
+    } catch {
+      // ignore storage errors
+    }
+    setIsAuthenticated(false);
+    setActiveTab('medical_search');
+    setUserRole('medical_store');
+  };
+
+  if (!isAuthenticated) {
+    return <LoginScreen onLogin={() => setIsAuthenticated(true)} />;
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col text-slate-900">
       {/* Primary Top Bar */}
@@ -141,17 +171,28 @@ export default function App() {
             </span>
           </div>
 
-          {stats && (
-            <div className="flex items-center gap-2.5 sm:gap-4 text-slate-600 font-mono text-[10px] sm:text-[11px] tabular-nums overflow-x-auto scrollbar-none pb-0.5">
-              <span className="whitespace-nowrap"><strong>{stats.totalProducts}</strong> Meds in DB</span>
-              <span aria-hidden="true" className="text-slate-300">·</span>
-              <span className="whitespace-nowrap"><strong>{stats.totalAgencies + stats.totalMRs}</strong> Stockists & MRs</span>
-              <span aria-hidden="true" className="text-slate-300">·</span>
-              <span className="whitespace-nowrap"><strong>{stats.totalPromotions}</strong> New Launches</span>
-              <span aria-hidden="true" className="text-slate-300">·</span>
-              <span className="whitespace-nowrap"><strong>{stats.totalInquiries}</strong> POs</span>
-            </div>
-          )}
+          <div className="flex items-center gap-2.5 sm:gap-4">
+            {stats && (
+              <div className="flex items-center gap-2.5 sm:gap-4 text-slate-600 font-mono text-[10px] sm:text-[11px] tabular-nums overflow-x-auto scrollbar-none pb-0.5">
+                <span className="whitespace-nowrap"><strong>{stats.totalProducts}</strong> Meds in DB</span>
+                <span aria-hidden="true" className="text-slate-300">·</span>
+                <span className="whitespace-nowrap"><strong>{stats.totalAgencies + stats.totalMRs}</strong> Stockists & MRs</span>
+                <span aria-hidden="true" className="text-slate-300">·</span>
+                <span className="whitespace-nowrap"><strong>{stats.totalPromotions}</strong> New Launches</span>
+                <span aria-hidden="true" className="text-slate-300">·</span>
+                <span className="whitespace-nowrap"><strong>{stats.totalInquiries}</strong> POs</span>
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] sm:text-xs font-semibold text-slate-600 hover:text-rose-700 hover:bg-rose-50 rounded-md transition-colors whitespace-nowrap shrink-0"
+              title="Sign out"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Sign Out</span>
+            </button>
+          </div>
         </div>
       </section>
 
